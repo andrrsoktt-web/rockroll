@@ -139,7 +139,9 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
 .card.locked img{filter:grayscale(1) brightness(.45)}
 .card.locked .nm,.card.locked .stat{opacity:.5}
 .lock{display:flex;align-items:center;gap:6px;font:600 11px var(--mono);color:var(--gold)}
-.actions{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.actions{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;position:sticky;bottom:calc(-14px - var(--sb));z-index:3;margin:0 calc(-1*var(--sr)) 0 calc(-1*var(--sl));padding:14px var(--sr) calc(var(--sb) + 14px) var(--sl);background:linear-gradient(180deg,rgba(6,10,12,0),rgba(6,10,12,.92) 35%)}
+.actions .btn{flex:1 1 0;min-height:52px}
+.sheet .btns{position:sticky;bottom:0;padding-top:6px;background:var(--panel-2)}
 
 /* hud */
 #hud{position:absolute;inset:0;pointer-events:none}
@@ -194,6 +196,20 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
 .toast.pop{animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
 @keyframes pop{from{transform:translateX(-50%) scale(.7);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
 
+/* help */
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:start}
+.steps .si{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line-2);color:var(--accent)}
+.steps .si .ic{width:22px;height:22px}
+.steps .si.w{color:var(--warm);border-color:rgba(255,176,74,.5)}
+.steps b{display:block;font:700 14px var(--display);margin-bottom:3px}
+.steps p{margin:0;font-size:14px;line-height:1.4;color:var(--dim)}
+#scrHelp .sheet{width:min(560px,100%);max-height:100%;overflow:auto}
+.qbtn{width:26px;height:26px;display:grid;place-items:center;border:1px solid var(--line-2);border-radius:50%;font:700 13px var(--mono);color:var(--accent)}
+.rot{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;background:rgba(5,8,10,.88)}
+.rot svg{width:72px;height:72px;color:var(--accent);animation:tilt 1.8s ease-in-out infinite}
+@keyframes tilt{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+.rot b{font:800 20px var(--display)}.rot p{margin:0;color:var(--dim);max-width:30ch}
 /* overlays */
 .center{display:flex;align-items:safe center;justify-content:center;background:rgba(5,8,10,.5)}
 .sheet{width:min(500px,100%);padding:20px;display:flex;flex-direction:column;gap:14px}
@@ -338,11 +354,11 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
    </div>
   </div>
   <div class="panel aim" id="aimBox">
-   <div class="prow"><span class="eyebrow">Подкрутка</span><b id="spinOut">0</b></div>
+   <div class="prow"><span class="eyebrow">Подкрутка <button class="qbtn" id="aimHelp" aria-label="Как играть">?</button></span><b id="spinOut">0</b></div>
    <input type="range" id="spin" min="-10" max="10" value="0" aria-label="Подкрутка">
-   <div class="ticks"><span>назад</span><span>0</span><span>вперёд</span></div>
+   <div class="ticks"><span>тормоз</span><span>0</span><span>разгон</span></div>
   </div>
-  <div class="panel hint" id="hint"><svg class="ic"><use href="#i-aim"/></svg>Потяни назад и отпусти</div>
+  <div class="panel hint" id="hint"><svg class="ic"><use href="#i-aim"/></svg>Тяни назад в любом месте и отпусти</div>
   <div class="pads" id="pads" hidden><button class="panel pad" id="padL" aria-label="Тормозить"><svg class="ic"><use href="#i-left"/></svg></button><button class="panel pad" id="padR" aria-label="Толкать"><svg class="ic"><use href="#i-right"/></svg></button></div>
   <button class="nitro" id="nitroBtn" aria-label="Нитро" hidden><span><svg class="ic"><use href="#i-flame"/></svg>НИТРО</span></button>
   <div class="panel keys" id="keys" hidden><b>← →</b> толчок · <b>Пробел</b> нитро · <b>R</b> заново · <b>Esc</b> пауза</div>
@@ -355,11 +371,34 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
    <div class="btns" style="flex-direction:column">
     <button class="btn pri" id="pResume"><svg class="ic"><use href="#i-play"/></svg>Продолжить</button>
     <button class="btn" id="pRestart"><svg class="ic"><use href="#i-restart"/></svg>Заново</button>
+    <button class="btn" id="pHelp"><svg class="ic"><use href="#i-aim"/></svg>Как играть</button>
     <button class="btn" id="pMap"><svg class="ic"><use href="#i-map"/></svg>Маршрут</button>
     <button class="btn" id="pSound"><svg class="ic"><use href="#i-sound"/></svg><span id="pSoundL">Звук вкл</span></button>
    </div>
   </div>
  </section>
+
+ <section class="screen center" id="scrHelp" hidden>
+  <div class="panel sheet">
+   <div class="eyebrow">Как играть</div>
+   <h2>Докати камень как можно дальше</h2>
+   <ol class="steps">
+    <li><span class="si"><svg class="ic"><use href="#i-aim"/></svg></span><div><b>Бросок</b><p>Нажми в любом месте экрана, потяни палец назад (влево-вниз) и отпусти — не обязательно от камня. Чем длиннее тянешь — тем сильнее бросок, направление задаёт угол.</p></div></li>
+    <li><span class="si"><svg class="ic"><use href="#i-restart"/></svg></span><div><b>Подкрутка</b><p>Ползунок внизу слева — вращение камня перед броском. «Разгон»: после приземления камень сразу катится дальше. «Тормоз»: гасит скорость, чтобы не улететь в пропасть. Не уверен — оставь 0.</p></div></li>
+    <li><span class="si"><svg class="ic"><use href="#i-right"/></svg></span><div><b>Подталкивай</b><p>Пока камень катится, кнопки ← → толкают и притормаживают его. Сил хватает на пару секунд — береги на подъёмы.</p></div></li>
+    <li><span class="si w"><svg class="ic"><use href="#i-flame"/></svg></span><div><b>Нитро</b><p>На сложных участках появится оранжевая кнопка — рывок вперёд. Жми перед пропастью или туннелем.</p></div></li>
+    <li><span class="si" style="color:var(--gold)"><svg class="ic f"><use href="#i-star"/></svg></span><div><b>Звёзды</b><p>Считается самая дальняя точка. 50% трассы — 1★, финиш — 2★, финиш с 3 кристаллами — 3★. Звёзды открывают новые камни.</p></div></li>
+   </ol>
+   <div class="btns"><button class="btn acc" id="helpOk">Понятно, играем<svg class="ic"><use href="#i-next"/></svg></button></div>
+  </div>
+ </section>
+
+ <div class="rot" id="rot" hidden>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>
+  <b>Поверни телефон</b>
+  <p>Игра сделана для горизонтального экрана — так видно трассу и камень крупнее.</p>
+  <button class="btn sm" id="rotSkip">Играть вертикально</button>
+ </div>
 
  <section class="screen center" id="scrResult" hidden>
   <div class="panel sheet">
@@ -1334,7 +1373,7 @@ function stoneThumb(key,px){const c=canvasOf(px,px),g=c.getContext('2d'),r=px*.4
 /* ---------- view ---------- */
 let W=0,H=0,DPR=1,PPM=30;
 const cam={x:0,y:0,z:1};
-function resize(){const r=app.getBoundingClientRect();DPR=Math.min(2,window.devicePixelRatio||1);W=r.width;H=r.height;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);PPM=W<H?W/16:Math.max(22,Math.min(72,H/11.5));if(scr==='map')buildMap()}
+function resize(){const r=app.getBoundingClientRect();DPR=Math.min(2,window.devicePixelRatio||1);W=r.width;H=r.height;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);PPM=W<H?W/10.5:Math.max(26,Math.min(84,H/9));checkRot();if(scr==='map')buildMap()}
 const ppm=()=>PPM*cam.z;
 const sx=x=>(x-cam.x)*ppm()+W/2, sy=y=>H*.55-(y-cam.y)*ppm();
 const wx=px=>(px-W/2)/ppm()+cam.x;
@@ -1431,9 +1470,9 @@ cv.addEventListener('pointerdown',e=>{AU.init();if(scr!=='game'||!S||S.mode!=='a
 cv.addEventListener('pointermove',e=>{if(!S||!S.drag)return;S.drag.x=e.offsetX;S.drag.y=e.offsetY;computeAim()});
 cv.addEventListener('pointerup',()=>{if(!S||!S.drag)return;computeAim();S.drag=null;if(S.aim&&S.aim.p>.06)launch(S.aim.vx,S.aim.vy,+$('spin').value);else{S.aim=null;$('hint').hidden=false}});
 cv.addEventListener('pointercancel',()=>{if(S){S.drag=null;S.aim=null}});
-function computeAim(){const d=S.drag,dx=d.x0-d.x,dy=d.y0-d.y,maxPull=Math.min(220,Math.max(100,Math.min(W,H)*.3)),len=Math.hypot(dx,dy);
+function computeAim(){const d=S.drag,dx=d.x0-d.x,dy=d.y0-d.y,maxPull=Math.min(170,Math.max(70,Math.min(W,H)*.22)),len=Math.hypot(dx,dy);
  if(len<3){S.aim=null;return}const p=Math.min(1,len/maxPull),m=STONES[S.type].maxV;let vx=dx/len*p*m,vy=-dy/len*p*m;if(vx<-2)vx=-2;S.aim={vx,vy,p}}
-$('spin').addEventListener('input',e=>{const v=+e.target.value;$('spinOut').textContent=v===0?'0':v>0?'+'+v+' вперёд':Math.abs(v)+' назад'});
+$('spin').addEventListener('input',e=>{const v=+e.target.value;$('spinOut').textContent=v===0?'0':v>0?'разгон +'+v:'тормоз '+Math.abs(v)});
 const KL=['ArrowLeft','a','A','ф','Ф'],KR=['ArrowRight','d','D','в','В'],KN=[' ','Shift','n','N','т','Т'];
 addEventListener('keydown',e=>{const k=e.key;if(e.target.closest&&e.target.closest('input,button')&&k===' ')return;
  if(KL.includes(k))keys.l=true;else if(KR.includes(k))keys.r=true;else if(KN.includes(k)){keys.n=true;if(scr==='game')e.preventDefault()}
@@ -1475,9 +1514,9 @@ function frameBody(now){
   }
   const v=Math.hypot(st.vx,st.vy),aiming=S.mode==='aim';
   const al=S.mode==='run'&&S.prev?Math.min(1,acc*60):1,pv=S.prev||{x:st.x,y:st.y,a:st.ang},ix=pv.x+(st.x-pv.x)*al,iy=pv.y+(st.y-pv.y)*al,ia=pv.a+(st.ang-pv.a)*al;
-  const mv=STONES[S.type].maxV,aimW=mv*mv/G*1.2+14,aimZ=Math.max(.3,Math.min(1,W/(aimW*PPM),H/((mv*mv/G*.55+6)*PPM)));
-  const zT=aiming?(S.demo?1:aimZ):Math.max(.68,1-v/70-(st.grounded?0:.05));cam.z+=(zT-cam.z)*Math.min(1,dt*(aiming?3:1.2));
-  const look=aiming?(W/ppm())*(S.demo?.22:.3):Math.max(-4,Math.min(12,st.vx*.5));
+  const mv=STONES[S.type].maxV,aimW=mv*mv/G*1.2+14,aimZ=Math.max(.5,Math.min(1,W/(aimW*PPM),H/((mv*mv/G*.55+6)*PPM)));
+  const zT=aiming?(S.demo?1:aimZ):Math.max(.8,1-v/90-(st.grounded?0:.04));cam.z+=(zT-cam.z)*Math.min(1,dt*(aiming?3:1.2));
+  const look=aiming?(W/ppm())*(S.demo?.22:.16):Math.max(-4,Math.min(12,st.vx*.5));
   const tx=ix+look,ty=aiming?iy+(S.demo?-2.5:(H*.15)/ppm()):iy-1.2,k=aiming&&!S.run?Math.min(1,dt*6):Math.min(1,dt*3.5);cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
   ctx.setTransform(DPR,0,0,DPR,0,0);
   safe(drawSky,P,S.paused?0:dt);safe(drawBgLayers,P,S.paused?0:dt);
@@ -1515,8 +1554,8 @@ function hud(v){if(clock-hudT<.08)return;hudT=clock;
  if(S.opp){const o=S.opp,step=o.step||4,p=S.mode==='aim'?null:samplePath(o.path,(S.run?S.run.frames:0)/step);const op=p?Math.max(0,Math.min(1,(p[0]-START_X)/(S.T.F-START_X))):0;$('hOpp').style.left=(op*100)+'%';$('hOpp').hidden=false}else $('hOpp').hidden=true}
 
 /* ---------- screens ---------- */
-const SCREENS=['scrTitle','scrMap','scrPrep','scrPause','scrResult'];
-function show(name){scr=name;for(const id of SCREENS)$(id).hidden=true;$('hud').hidden=name!=='game';
+const SCREENS=['scrTitle','scrMap','scrPrep','scrPause','scrResult','scrHelp'];
+function show(name){scr=name;for(const id of SCREENS)$(id).hidden=true;$('hud').hidden=name!=='game';checkRot();
  if(name==='title'){$('scrTitle').hidden=false;refreshTitle()}else if(name==='map'){$('scrMap').hidden=false;buildMap()}else if(name==='prep')$('scrPrep').hidden=false;
  if(name!=='game'&&(!S||!S.demo))newSession(13,{demo:true});
  AU.duck=name==='game'?1:.25;pushPresence(true)}
@@ -1550,12 +1589,12 @@ async function openPrep(n){
  const G=[['Пройти 50% трассы',st>=1],['Доехать до финиша',st>=2],['Финиш + 3 кристалла',st>=3]];
  $('pGoals').innerHTML=G.map(([t,ok],i)=>`<div class="goal${ok?' ok':''}"><span class="gs">${ico('star','f')}${i>0?ico('star','f'):''}${i>1?ico('star','f'):''}</span><span>${t}</span>${ok?ico('check'):''}</div>`).join('')+`<div class="goal"><span class="gs">${ico('gem')}</span><span>Кристаллы собраны: ${gems}/3</span></div>`;
  buildCards();setMode(mode==='player'?'player':mode);show('prep');
- $('board').innerHTML=NET.db?'<div class="eyebrow">Загружаю рекорды игроков…</div>':'<div class="eyebrow">Рекорды игроков доступны в веб-версии</div>';
+ $('board').innerHTML=NET.db?'<div class="eyebrow">Загружаю рекорды игроков…</div>':'<div class="eyebrow">Онлайн-рекорды игроков — скоро</div>';
  const rows=await fetchBoard(n);if(prepLevel!==n)return;board[n]=rows||[];renderBoard(n);
 }
 function renderBoard(n){const rows=board[n]||[],box=$('board');
  $('mPlayer').disabled=!rows.some(r=>r.id!==NET.me&&r.path&&r.att===LEVELS[n-1].att);if($('mPlayer').disabled&&mode==='player')setMode('solo');
- if(!NET.db){box.innerHTML='<div class="eyebrow">Рекорды игроков доступны в веб-версии</div>';return}
+ if(!NET.db){box.innerHTML='<div class="eyebrow">Онлайн-рекорды игроков — скоро</div>';return}
  if(!rows.length){box.innerHTML='<div class="eyebrow">Рекордов пока нет — стань первым</div>';return}
  box.innerHTML='<div class="eyebrow">'+ico('trophy')+'Рекорды игроков</div><ol class="lb">'+rows.slice(0,6).map((r,i)=>`<li class="${r.id===NET.me?'me':''}"><b>${i+1}</b><span class="nm"></span><span class="num">${Math.min(100,r.pct|0)}%${r.fin?' '+ico('flag'):''}</span><span class="num sc">${r.score|0}</span></li>`).join('')+'</ol>';
  box.querySelectorAll('.lb .nm').forEach((el,i)=>el.textContent=rows[i].id===NET.me?'Ты':nameOf(rows[i].id))}
@@ -1584,7 +1623,8 @@ function startGame(n,m){
  $('aimBox').hidden=false;$('hint').hidden=false;$('pads').hidden=true;$('keys').hidden=true;$('nitroBtn').hidden=true;
  $('scrPause').hidden=true;$('scrResult').hidden=true;
  const marks=$('hMarks');marks.innerHTML=S.T.crystals.map(c=>`<i class="gm" style="left:${((c.x-START_X)/(S.T.F-START_X)*100).toFixed(1)}%">${ico('gem')}</i>`).join('')+'<i class="half" style="left:50%"></i>';
- hudT=-1;hud(0);
+ hudT=-1;hud(0);checkRot();
+ if(!save.tut)setTimeout(()=>{if(scr==='game'&&S&&S.mode==='aim')openHelp()},250);
 }
 function togglePause(on){if(!S||S.demo)return;S.paused=on;$('scrPause').hidden=!on;AU.update(0,false,0,false,false);refreshTitle()}
 function showResult(r){
@@ -1602,6 +1642,15 @@ function showResult(r){
  const nowT=totalStars(),ns=Object.keys(STONES).find(k=>STONES[k].unlock>r.prevTotal&&STONES[k].unlock<=nowT);if(ns)setTimeout(()=>toast('Открыт новый груз: '+STONES[ns].name,'stone'),1500);
 }
 
+/* ---------- help & rotate ---------- */
+let rotSkip=false;
+function checkRot(){const el=document.getElementById('rot');if(!el)return;const coarse=matchMedia('(pointer:coarse)').matches;el.hidden=!(coarse&&W<H&&!rotSkip&&scr==='game')}
+function openHelp(){if(S&&!S.demo)S.paused=true;$('scrPause').hidden=true;$('scrHelp').hidden=false}
+function closeHelp(){$('scrHelp').hidden=true;save.tut=1;persist();if(S&&!S.demo)S.paused=false;AU.ui()}
+$('helpOk').onclick=closeHelp;
+$('aimHelp').onclick=e=>{e.stopPropagation();AU.ui();openHelp()};
+$('pHelp').onclick=()=>{AU.ui();openHelp()};
+$('rotSkip').onclick=()=>{rotSkip=true;checkRot()};
 /* ---------- wiring ---------- */
 $('goMap').onclick=()=>{AU.init();AU.ui();show('map')};
 $('goDuel').onclick=()=>{AU.init();AU.ui();const open=[];for(let n=1;n<=20;n++)if(unlocked(n))open.push(n);const n=open[(Math.random()*open.length)|0];fetchBoard(n).then(rows=>{board[n]=rows||[];startGame(n,(rows||[]).some(r=>r.id!==NET.me&&r.path)?'player':'bot')})};

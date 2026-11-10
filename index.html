@@ -179,8 +179,14 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
 .pads{position:absolute;bottom:calc(var(--sb) + 14px);left:var(--sl);right:var(--sr);display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none}
 .pad{pointer-events:auto;width:70px;height:70px;touch-action:none;display:grid;place-items:center}
 .pad .ic{width:26px;height:26px}
+.pad{width:84px;height:84px;grid-template-rows:1fr auto auto;padding:10px 8px 8px;gap:4px}
+.pad span{font:600 10px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.pad .en{display:block;width:100%;height:4px;background:rgba(206,228,232,.15)}
+.pad .en u{display:block;height:100%;width:calc(var(--e,1)*100%);background:var(--accent)}
+.pad.on .en u{background:var(--accent-ink)}
+.pad.out{opacity:.45}
 .pad.on{background:var(--accent);color:var(--accent-ink)}
-.nitro{--f:1;position:absolute;right:calc(var(--sr) + 84px);bottom:calc(var(--sb) + 14px);width:96px;height:96px;border-radius:50%;display:grid;place-items:center;touch-action:none;
+.nitro{--f:1;position:absolute;right:calc(var(--sr) + 100px);bottom:calc(var(--sb) + 14px);width:96px;height:96px;border-radius:50%;display:grid;place-items:center;touch-action:none;
  background:radial-gradient(circle at 50% 40%,#ffcf6a,#ff6a3a 70%);color:#2a0c02;box-shadow:0 0 0 4px rgba(9,14,18,.75),0 8px 26px rgba(255,106,58,.45)}
 .nitro::before{content:"";position:absolute;inset:-9px;border-radius:50%;background:conic-gradient(#ffd35c calc(var(--f)*360deg),rgba(255,255,255,.12) 0);-webkit-mask:radial-gradient(circle,transparent 54px,#000 55px);mask:radial-gradient(circle,transparent 54px,#000 55px)}
 .nitro span{display:flex;flex-direction:column;align-items:center;font:800 10px var(--mono);letter-spacing:.14em}
@@ -359,7 +365,7 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
    <div class="ticks"><span>тормоз</span><span>0</span><span>разгон</span></div>
   </div>
   <div class="panel hint" id="hint"><svg class="ic"><use href="#i-aim"/></svg>Тяни назад в любом месте и отпусти</div>
-  <div class="pads" id="pads" hidden><button class="panel pad" id="padL" aria-label="Тормозить"><svg class="ic"><use href="#i-left"/></svg></button><button class="panel pad" id="padR" aria-label="Толкать"><svg class="ic"><use href="#i-right"/></svg></button></div>
+  <div class="pads" id="pads" hidden><button class="panel pad" id="padL" aria-label="Тормоз"><svg class="ic"><use href="#i-left"/></svg><span>тормоз</span><i class="en"><u></u></i></button><button class="panel pad" id="padR" aria-label="Толчок"><svg class="ic"><use href="#i-right"/></svg><span>толчок</span><i class="en"><u></u></i></button></div>
   <button class="nitro" id="nitroBtn" aria-label="Нитро" hidden><span><svg class="ic"><use href="#i-flame"/></svg>НИТРО</span></button>
   <div class="panel keys" id="keys" hidden><b>← →</b> толчок · <b>Пробел</b> нитро · <b>R</b> заново · <b>Esc</b> пауза</div>
  </div>
@@ -385,7 +391,7 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
    <ol class="steps">
     <li><span class="si"><svg class="ic"><use href="#i-aim"/></svg></span><div><b>Бросок</b><p>Нажми в любом месте экрана, потяни палец назад (влево-вниз) и отпусти — не обязательно от камня. Чем длиннее тянешь — тем сильнее бросок, направление задаёт угол.</p></div></li>
     <li><span class="si"><svg class="ic"><use href="#i-restart"/></svg></span><div><b>Подкрутка</b><p>Ползунок внизу слева — вращение камня перед броском. «Разгон»: после приземления камень сразу катится дальше. «Тормоз»: гасит скорость, чтобы не улететь в пропасть. Не уверен — оставь 0.</p></div></li>
-    <li><span class="si"><svg class="ic"><use href="#i-right"/></svg></span><div><b>Подталкивай</b><p>Пока камень катится, кнопки ← → толкают и притормаживают его. Сил хватает на пару секунд — береги на подъёмы.</p></div></li>
+    <li><span class="si"><svg class="ic"><use href="#i-right"/></svg></span><div><b>Подталкивай</b><p>Пока камень катится, держи «Толчок» → чтобы разогнать его (помогает на подъёмах) или «Тормоз» ← чтобы замедлить перед обрывом. Сил всего на пару секунд за заезд — полоска под кнопкой показывает остаток.</p></div></li>
     <li><span class="si w"><svg class="ic"><use href="#i-flame"/></svg></span><div><b>Нитро</b><p>На сложных участках появится оранжевая кнопка — рывок вперёд. Жми перед пропастью или туннелем.</p></div></li>
     <li><span class="si" style="color:var(--gold)"><svg class="ic f"><use href="#i-star"/></svg></span><div><b>Звёзды</b><p>Считается самая дальняя точка. 50% трассы — 1★, финиш — 2★, финиш с 3 кристаллами — 3★. Звёзды открывают новые камни.</p></div></li>
    </ol>
@@ -1549,6 +1555,7 @@ let hudT=0;
 function hud(v){if(clock-hudT<.08)return;hudT=clock;
  const pct=progress();$('hPct').textContent=Math.floor(pct*100)+'%';$('hFill').style.width=(pct*100)+'%';
  $('hSpeed').textContent=Math.round(v*3.6);$('hTrees').textContent=S.run?S.run.trees:0;$('hGems').textContent=(S.run?S.run.crys:0)+'/3';
+ {const e=Math.max(0,S.input.energy/2.5);for(const id of ['padL','padR']){$(id).style.setProperty('--e',e);$(id).classList.toggle('out',e<=0)}}
  if(S.T.nitro){const f=S.input.fuel/S.T.nitro;$('nitroBtn').style.setProperty('--f',f);$('nitroBtn').classList.toggle('empty',f<=0)}
  const pe=peersOnLevel(S.n).length;$('hLive').hidden=!pe;$('hLiveN').textContent=pe;
  if(S.opp){const o=S.opp,step=o.step||4,p=S.mode==='aim'?null:samplePath(o.path,(S.run?S.run.frames:0)/step);const op=p?Math.max(0,Math.min(1,(p[0]-START_X)/(S.T.F-START_X))):0;$('hOpp').style.left=(op*100)+'%';$('hOpp').hidden=false}else $('hOpp').hidden=true}

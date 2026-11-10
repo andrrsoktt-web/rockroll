@@ -261,6 +261,7 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
  .prog{width:min(300px,52vw)}.pct{font-size:22px}.lvtag{display:none}.hud-top{grid-template-columns:1fr auto}
 }
 @media (max-height:520px){
+ .aim{left:auto;right:var(--sr);width:220px;padding:6px 10px;gap:2px}.aim input{height:22px}.aim .ticks{font-size:8px}
  .prog{width:min(300px,32vw);padding:5px 10px 7px;gap:4px}.pct{font-size:18px}.pct small{display:none}.sub{font-size:11px;gap:7px}.sub .ic{width:12px;height:12px}.track{height:5px}
  .lvtag{padding:5px 10px}.lvtag b{font-size:11px}.hbtn{width:38px;height:38px}.live{height:38px}
  .sheet{padding:14px;gap:9px;width:min(620px,100%)}.rgrid{grid-template-columns:repeat(6,1fr)}.rgrid div{grid-template-columns:1fr;text-align:center}.rgrid .ic{grid-row:auto;justify-self:center}
@@ -658,14 +659,14 @@ AU.init=function(){
  AU.setTheme(AU.theme);
 };
 AU.set=function(node,v,tc){if(!AU.c)return;node.setTargetAtTime(v,AU.c.currentTime,tc||.08)};
-AU.setTheme=function(t){AU.theme=t;if(!AU.c)return;AU.set(AU.drone.gain,t==='alien'?.025:0,.8);AU.set(AU.amb.g.gain,0,.3)};
+AU.setTheme=function(t){AU.theme=t;if(!AU.c)return;AU.set(AU.drone.gain,0,.8);AU.set(AU.amb.g.gain,0,.3)};
 AU.update=function(speed,grounded,surf,on,nitro){
  if(!AU.c)return;const d=on?AU.duck:0,k=SURF[surf].key;
  const rollMul=k==='snow'?.35:k==='ice'?.45:1;
- AU.set(AU.roll.g.gain,grounded&&speed>.6?Math.min(.5,speed/18)*.6*d*rollMul:0,.05);
+ AU.set(AU.roll.g.gain,grounded&&speed>.6?Math.min(.5,speed/18)*.22*d*rollMul:0,.05);
  AU.set(AU.roll.f.frequency,SURF[surf].snd*(.75+Math.min(1.2,speed/25)));
- AU.set(AU.rum.g.gain,grounded&&speed>.6?Math.min(.7,speed/13)*.7*d:0,.06);
- AU.set(AU.wind.g.gain,(speed<9?0:Math.min(.28,Math.pow((speed-9)/25,1.5)*.35))*d,.25);
+ AU.set(AU.rum.g.gain,grounded&&speed>.6?Math.min(.7,speed/13)*.35*d:0,.06);
+ AU.set(AU.wind.g.gain,(speed<16?0:Math.min(.12,Math.pow((speed-16)/25,1.5)*.2))*d,.25);
  AU.set(AU.wind.f.frequency,280+speed*55,.2);
  const nOn=nitro&&on?1:0;AU.set(AU.nitroG.gain,nOn*.16*d,.04);AU.set(AU.nitroN.g.gain,nOn*.22*d,.04);AU.set(AU.nitroO.frequency,60+speed*3,.1);
  if(!on||!grounded||speed<1.5)return;
@@ -1498,8 +1499,8 @@ function finish(){
 }
 
 /* ---------- input ---------- */
-cv.addEventListener('pointerdown',e=>{AU.init();if(scr!=='game'||!S||S.mode!=='aim'||S.paused)return;cv.setPointerCapture(e.pointerId);S.drag={x0:e.offsetX,y0:e.offsetY,x:e.offsetX,y:e.offsetY};$('hint').hidden=true});
-cv.addEventListener('pointermove',e=>{if(!S||!S.drag)return;S.drag.x=e.offsetX;S.drag.y=e.offsetY;computeAim()});
+app.addEventListener('pointerdown',e=>{AU.init();if(scr!=='game'||!S||S.mode!=='aim'||S.paused)return;if(e.target!==cv&&e.target.closest('button,input,.aim,.screen,.rot'))return;const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;try{cv.setPointerCapture(e.pointerId)}catch(_){}S.drag={x0:x,y0:y,x,y};$('hint').hidden=true});
+cv.addEventListener('pointermove',e=>{if(!S||!S.drag)return;const r=cv.getBoundingClientRect();S.drag.x=e.clientX-r.left;S.drag.y=e.clientY-r.top;computeAim()});
 cv.addEventListener('pointerup',()=>{if(!S||!S.drag)return;computeAim();S.drag=null;if(S.aim&&S.aim.p>.06)launch(S.aim.vx,S.aim.vy,+$('spin').value);else{S.aim=null;$('hint').hidden=false}});
 cv.addEventListener('pointercancel',()=>{if(S){S.drag=null;S.aim=null}});
 function computeAim(){const d=S.drag,dx=d.x0-d.x,dy=d.y0-d.y,maxPull=Math.min(170,Math.max(70,Math.min(W,H)*.22)),len=Math.hypot(dx,dy);

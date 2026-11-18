@@ -349,7 +349,7 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
  <canvas id="cv" aria-label="Игровое поле"></canvas>
 
  <section class="screen" id="scrTitle">
-  <div class="tline"><span class="eyebrow">сборка 17 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
+  <div class="tline"><span class="eyebrow">сборка 18 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
   <h1 class="logo">ROCK<span>ROLL</span></h1>
   <p class="tag">Скати камень с горы до финиша. Трамплины, пропасти, обвалы и нитро — каждая трасса проходима, если найти свою линию.</p>
   <div class="stack">
@@ -1649,7 +1649,7 @@ const SZ_PRE=36,SZ_FPS=12,SZ_LEAD=SZ_PRE/SZ_FPS,SZ_REL={x:.18,y:.62,r:.1};
 function drawSizifBust(){
  const T=S.T,run=S.run,f0=SZF[0];
  if(!f0||SZF.filter(Boolean).length<SZ_ANIM.length){const body=sizifBody();if(body){const hgt=Math.min(H*.86,W*.7),wd=body.width*hgt/body.height;ctx.drawImage(body,W-wd*.56-wd/2,H-hgt,wd,hgt)}return}
- const t=clock,hgt=Math.min(H*1.07,W*.9),wd=f0.width*hgt/f0.height,cx=W-wd*.95+wd*.5-4,base=H+hgt*.1; // a far-away giant: fixed to the screen like the sky, so he never bobs with the camera; the near hill hides his waist
+ const t=clock,hgt=Math.min(H*1.07,W*.9),wd=f0.width*hgt/f0.height,cx=Math.max(wd*.5-wd*.04,W-wd*.95+wd*.5-4),base=H>W?H*.5+hgt*.4:H+hgt*.1; // portrait: stands on the horizon above the track instead of below the screen // a far-away giant: fixed to the screen like the sky, so he never bobs with the camera; the near hill hides his waist
  const B=T.bs,mode=B?(B.mode||(B.mode=pickThrowMode(B))):'roar';
  const tt=(T.bs&&run&&S.mode==='run')?T.bs.next-run.t:99,since=S.bossThrow!=null?t-S.bossThrow:99;
  let fr=0,fade=null,fa=0,glow=0;

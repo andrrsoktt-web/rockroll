@@ -349,7 +349,7 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
  <canvas id="cv" aria-label="Игровое поле"></canvas>
 
  <section class="screen" id="scrTitle">
-  <div class="tline"><span class="eyebrow">сборка 21 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
+  <div class="tline"><span class="eyebrow" id="buildLbl">сборка 22 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
   <h1 class="logo">ROCK<span>ROLL</span></h1>
   <p class="tag">Скати камень с горы до финиша. Трамплины, пропасти, обвалы и нитро — каждая трасса проходима, если найти свою линию.</p>
   <div class="stack">
@@ -1807,7 +1807,7 @@ function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save))}catch
 const totalStars=()=>Object.values(save.stars).reduce((a,b)=>a+b,0);
 const totalGems=()=>Object.values(save.gems).reduce((a,b)=>a+b,0);
 const finished=n=>BOSS_AT[n]?!!(save.boss&&save.boss[BOSS_AT[n]]):(save.stars[n]||0)>=2;
-const unlocked=n=>(leagueOf(n)===1||!!save.boss[leagueOf(n)-1])&&(n%20===1||finished(n-1));
+const unlocked=n=>!!save.test||(leagueOf(n)===1||!!save.boss[leagueOf(n)-1])&&(n%20===1||finished(n-1));
 const leagueOpen=lg=>unlocked((lg-1)*20+1);let mapLg=0;
 const stoneOpen=k=>totalStars()>=STONES[k].unlock;
 AU.muted=!!save.muted;
@@ -2190,6 +2190,9 @@ $('aimHelp').onclick=e=>{e.stopPropagation();AU.ui();openHelp()};
 $('pHelp').onclick=()=>{AU.ui();openHelp()};
 $('rotSkip').onclick=()=>{rotSkip=true;checkRot()};
 /* ---------- wiring ---------- */
+/* hidden test mode: tap the build label 5 times to open every track and boss */
+{let taps=[];const lbl=$('buildLbl'),base=lbl.textContent,paint=()=>{lbl.textContent=base+(save.test?' · ТЕСТ':'');lbl.style.color=save.test?'#ffb347':''};paint();
+ lbl.style.cursor='pointer';lbl.addEventListener('click',()=>{const now=Date.now();taps=taps.filter(t=>now-t<2000);taps.push(now);if(taps.length>=5){taps=[];save.test=!save.test;persist();paint();AU.init();AU.ui();toast(save.test?'Тест-режим: все трассы и боссы открыты':'Тест-режим выключен','check');if(scr==='map')buildMap()}})}
 $('goMap').onclick=()=>{AU.init();AU.ui();mapLg=leagueOf(curLevel());show('map')};
 $('goDuel').onclick=()=>{AU.init();AU.ui();const open=[];for(let n=1;n<=60;n++)if(unlocked(n)&&!BOSS_AT[n])open.push(n);const n=open[(Math.random()*open.length)|0];fetchBoard(n).then(rows=>{board[n]=rows||[];startGame(n,(rows||[]).some(r=>r.id!==NET.me&&r.path)?'player':'bot')})};
 $('mapBack').onclick=()=>{AU.ui();show('title')};

@@ -349,7 +349,7 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
  <canvas id="cv" aria-label="Игровое поле"></canvas>
 
  <section class="screen" id="scrTitle">
-  <div class="tline"><span class="eyebrow">сборка 15 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
+  <div class="tline"><span class="eyebrow">сборка 16 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
   <h1 class="logo">ROCK<span>ROLL</span></h1>
   <p class="tag">Скати камень с горы до финиша. Трамплины, пропасти, обвалы и нитро — каждая трасса проходима, если найти свою линию.</p>
   <div class="stack">
@@ -655,9 +655,9 @@ function bossStep(T,st,inp,t,dt,ev){
  if(!T.bs){const r=mulberry32(T.seed^0xb055);T.bs={r,next:3.5,front:-30,spd:0}}
  const B=T.bs;inp.ax=0;
  if(T.boss===1){
-  if(t>=B.next&&st.x<T.F-20){B.next=t+8+B.r()*4;B.mode=null;const x=st.x+8+Math.min(Math.max(st.vx,0),12)*.8+B.r()*4;
+  if(t>=B.next&&st.x<T.F-20){B.next=t+8+B.r()*4;B.mode=null;const x=T.szLead!=null?st.x+Math.max(st.vx,0)*1.25+Math.max(2.5,Math.min(7,T.szLead*.55))+B.r():st.x+8+Math.min(Math.max(st.vx,0),12)*.8+B.r()*4; // on screen: aimed to land just ahead of the player, left of Sizif's hand
    const bad=x>T.F-12||T.feats.some(f=>(f.type==='chasm'||f.type==='tunnel'||f.type==='kicker')&&x>f.x-12&&x<f.x+(f.w||0)+4)||T.crumbles.some(c=>x>c.a-4&&x<c.b+4);
-   if(!bad){const rr=.5+B.r()*.22;{const y0=groundAt(T,x)+rr*.3+16;T.rocks.push({x,r:rr,y:y0,y0,vy:-4,land:false,t:0})}if(ev)ev.rockThrow=x}}
+   if(!bad){const rr=.75+B.r()*.25;{const y0=groundAt(T,x)+rr*.3+16;T.rocks.push({x,r:rr,y:y0,y0,vy:-4,land:false,t:0})}if(ev)ev.rockThrow=x}}
   for(const rk of T.rocks){if(rk.land)continue;rk.vy-=G*1.4*dt;rk.y+=rk.vy*dt;const gy=groundAt(T,rk.x)+rk.r*.3;if(rk.y<=gy){rk.y=gy;rk.land=true;if(ev)ev.rockLand=rk}}
  }else{
   const vmax=T.bossSpeed||8;B.spd=Math.min(vmax,vmax*Math.max(0,t-.8)/4);B.front+=B.spd*dt;
@@ -1578,7 +1578,7 @@ function drawBossFront(){
   drawSizifThrows();
   for(const rk of T.rocks){if(rk.broken)continue;const gx=sx(rk.x),gy=sy(rk.y),r=rk.r*z;
    if(!rk.land&&BOSS_IMG.szBall)continue; // in flight: drawn by Sizif's throw
-   if(BOSS_IMG.szBall){ctx.save();ctx.translate(gx,gy);const sh=ctx.createRadialGradient(0,r*.9,0,0,r*.9,r*1.3);sh.addColorStop(0,'rgba(0,0,0,.35)');sh.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=sh;ctx.fillRect(-r*1.4,r*.3,r*2.8,r*1.2);ctx.rotate(rk.x*1.7);ctx.drawImage(BOSS_IMG.szBall,-r*1.05,-r*1.05,r*2.1,r*2.1);ctx.restore()}
+   if(BOSS_IMG.szBall){ctx.save();ctx.translate(gx,gy);const sh=ctx.createRadialGradient(0,r*.9,0,0,r*.9,r*1.3);sh.addColorStop(0,'rgba(0,0,0,.35)');sh.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=sh;ctx.fillRect(-r*1.4,r*.3,r*2.8,r*1.2);ctx.rotate(rk.x*1.7);ctx.drawImage(BOSS_IMG.szBall,-r*1.1,-r*1.1,r*2.2,r*2.2);ctx.restore()}
    else drawRuneRock(gx,gy,r,rk.x*1.7,!rk.land)}
   return}
  if(!T.bs)return;
@@ -1644,12 +1644,12 @@ let SZ_FADED=null;
 function sizifBody(){if(SZ_FADED)return SZ_FADED;const im=BOSS_IMG.szBody;if(!im)return null;const c=canvasOf(im.width,im.height),g=c.getContext('2d');g.drawImage(im,0,0);
  g.globalCompositeOperation='destination-in';const gr=g.createLinearGradient(0,im.height*.7,0,im.height);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,im.width,im.height);return SZ_FADED=c}
 const SZ_PRE=36,SZ_FPS=12,SZ_LEAD=SZ_PRE/SZ_FPS,SZ_REL={x:.18,y:.62,r:.1};
-/* Sizif rises waist-deep from behind the slope. Before each throw he roars (mouth opens, steam), winds up and hurls the boulder;
+/* Sizif towers waist-deep on the right, fixed to the screen. Before each throw he roars (mouth opens, steam), winds up and hurls the boulder;
    the boulder then leaves the animation and flies to the track as its own sprite. */
 function drawSizifBust(){
  const T=S.T,run=S.run,f0=SZF[0];
  if(!f0||SZF.filter(Boolean).length<SZ_ANIM.length){const body=sizifBody();if(body){const hgt=Math.min(H*.86,W*.7),wd=body.width*hgt/body.height;ctx.drawImage(body,W-wd*.56-wd/2,H-hgt,wd,hgt)}return}
- const t=clock,hgt=Math.min(H*.7,W*.56),wd=f0.width*hgt/f0.height,cx=W-Math.max(16,W*.02)-104-wd*.5,gyS=sy(groundAt(T,wx(cx))),base=Math.max(hgt*.85,Math.min(H+hgt*.05,gyS+hgt*.3));
+ const t=clock,hgt=Math.min(H*1.07,W*.9),wd=f0.width*hgt/f0.height,cx=W-wd*.95+wd*.5-4,base=H+hgt*.04; // a far-away giant: fixed to the screen like the sky, so he never bobs with the camera; the near hill hides his waist
  const B=T.bs,mode=B?(B.mode||(B.mode=pickThrowMode(B))):'roar';
  const tt=(T.bs&&run&&S.mode==='run')?T.bs.next-run.t:99,since=S.bossThrow!=null?t-S.bossThrow:99;
  let fr=0,fade=null,fa=0,glow=0;
@@ -1665,15 +1665,18 @@ function drawSizifBust(){
  if(glow>0){ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.35*glow;ctx.drawImage(f0,-wd/2,-hgt,wd,hgt)}
  ctx.restore();
  SZ_HAND={x:cx-wd/2+SZ_REL.x*wd,y:base-hgt+SZ_REL.y*hgt,r:SZ_REL.r*wd};
+ if(S.st&&S.mode==='run')T.szLead=(SZ_HAND.x-sx(S.st.x))/ppm();
 }
 let SZ_HAND={x:0,y:0,r:20};
 function drawSizifThrows(){const T=S.T,ball=BOSS_IMG.szBall;if(!ball)return;
  // boulders in flight: from the hand along an arc down to the track, shrinking with distance
  if(T.boss===1)for(const rk of T.rocks){if(rk.land||rk.broken||rk.y0==null)continue;
-  const gy=groundAt(T,rk.x)+rk.r*.3,p=Math.max(0,Math.min(1,(rk.y0-rk.y)/(rk.y0-gy)));
-  const ex=sx(rk.x),ey=sy(gy),hx=SZ_HAND.x,hy=SZ_HAND.y,qx=(hx+ex)/2,qy=Math.max(40,Math.min(hy,ey)-H*.1);
-  const bz=q=>{const u=1-q;return[u*u*hx+2*u*q*qx+q*q*ex,u*u*hy+2*u*q*qy+q*q*ey]};const [x,y]=bz(p);
-  const r=SZ_HAND.r+(rk.r*ppm()-SZ_HAND.r)*Math.pow(p,.8),rot=(rk.x*1.7)-(1-p)*7;
+  const gy=groundAt(T,rk.x)+rk.r*.3,D=Math.max(.1,rk.y0-gy),tf=(-4+Math.sqrt(16+2*G*1.4*D))/(G*1.4),u=Math.max(0,Math.min(1,(-rk.vy-4)/(G*1.4)/tf)),p=u;
+  const ex=sx(rk.x),ey=sy(gy),hx=SZ_HAND.x,hy=SZ_HAND.y,arc=Math.max(0,Math.min(H*.22,hy-H*.1));
+  // even-in-time arc from the hand: up, over the player and down onto the track ahead; it never drifts back toward Sizif
+  const exE=ex-Math.max(0,S.st?S.st.vx:0)*ppm()*tf*(1-u),dir=rk._dir||(rk._dir=Math.sign(exE-hx)||-1);const pos=q=>{let x=hx+(exE-hx)*Math.pow(q,.85);if(q<1&&rk._px!=null&&q>=rk._pu)x=dir>0?Math.max(x,rk._px):Math.min(x,rk._px);if(q>.8)x=x+(ex-x)*((q-.8)/.2);return[x,hy+(ey-hy)*q*q-arc*4*q*(1-q)*(1-q*.3)]};
+  const [x,y]=pos(u);rk._px=x;rk._pu=u;const bz=q=>q>=u?[x,y]:pos(q);
+  const rL=rk.r*ppm()*1.1,r0=Math.max(SZ_HAND.r,rL*1.35),r=r0+(rL-r0)*p*p,rot=(rk.x*1.7)-(1-p)*7;
   ctx.save();ctx.globalCompositeOperation='lighter';for(let q=1;q<6;q++){const [xq,yq]=bz(Math.max(0,p-q*.04));ctx.fillStyle=`rgba(255,${170+q*10},70,${.22-q*.035})`;ctx.beginPath();ctx.arc(xq,yq,r*(1-q*.1),0,7);ctx.fill()}ctx.restore();
   ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.drawImage(ball,-r,-r,r*2,r*2);ctx.restore()}
 }
@@ -1956,7 +1959,7 @@ function frameBody(now){
   const al=S.mode==='run'&&S.prev?Math.min(1,acc*60):1,pv=S.prev||{x:st.x,y:st.y,a:st.ang},ix=pv.x+(st.x-pv.x)*al,iy=pv.y+(st.y-pv.y)*al,ia=pv.a+(st.ang-pv.a)*al;
   const mv=STONES[S.type].maxV,aimW=mv*mv/G*1.2+14,aimZ=Math.max(.5,Math.min(1,W/(aimW*PPM),H/((mv*mv/G*.55+6)*PPM)));
   const zT=aiming?(S.demo?1:aimZ):Math.max(.8,1-v/90-(st.grounded?0:.04));cam.z+=(zT-cam.z)*Math.min(1,dt*(aiming?3:1.2));
-  const look=aiming?(W/ppm())*(S.demo?.22:.16):Math.max(-4,Math.min(12,st.vx*.5));
+  const look=aiming?(W/ppm())*(S.demo?.22:.16):Math.max(-4,Math.min(12,st.vx*.5))+(S.T&&S.T.boss===1&&S.run?2:0);
   const tx=ix+look,ty=aiming?iy+(S.demo?-2.5:(H*.15)/ppm()):iy-1.2,k=aiming&&!S.run?Math.min(1,dt*6):Math.min(1,dt*3.5);cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
   ctx.setTransform(DPR,0,0,DPR,0,0);
   safe(drawSky,P,S.paused?0:dt);safe(drawBgLayers,P,S.paused?0:dt);safe(drawBossBack);

@@ -349,7 +349,7 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
  <canvas id="cv" aria-label="Игровое поле"></canvas>
 
  <section class="screen" id="scrTitle">
-  <div class="tline"><span class="eyebrow" id="buildLbl">сборка 24 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
+  <div class="tline"><span class="eyebrow" id="buildLbl">сборка 25 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
   <h1 class="logo">ROCK<span>ROLL</span></h1>
   <p class="tag">Скати камень с горы до финиша. Трамплины, пропасти, обвалы и нитро — каждая трасса проходима, если найти свою линию.</p>
   <div class="stack">
@@ -1646,12 +1646,11 @@ function drawBossFigure(g,kind,cx,by,h,t,a){
 function drawBossBack(){
  const T=S.T;if(!T.boss||S.demo)return;const B=BOSSES[T.boss],m=Math.min(W,H);
  if(T.boss===1){if(BOSS_IMG[1])drawSizifBust();else drawBossFigure(ctx,1,W*.84,H*.7,m*.68,clock,.95)}
- else if(T.boss===3&&typeof BA_F!=='undefined'&&baReady(3))drawChaserBust(3);
- else if(T.boss===2&&typeof BA_F!=='undefined'&&baReady(2)){} // Magmar is drawn in front of the hill, standing in his lava (drawBossFront)
+ else if(typeof BA_F!=='undefined'&&baReady(T.boss))drawChaserBust(T.boss); // behind the hill, like Sizif
  else if(T.boss===2){const fx=T.bs?sx(T.bs.front):-W;const x=Math.max(m*.3,Math.min(W*.3,fx-m*.15));glowAt(x,H*.55,m*.6,'255,90,30',.35);drawBossFigure(ctx,2,x,H*.86,m*.7,clock,.95)}
  else{const fx=T.bs?sx(T.bs.front):-W;const x=Math.max(m*.3,Math.min(W*.3,fx-m*.2));drawBossFigure(ctx,3,x,H*.78,m*.7,clock,.95)}
 }
-function drawBossFront(){drawBossFront0();const T=S.T;if(T&&T.boss>1&&!S.demo&&typeof BA_F!=='undefined'&&baReady(T.boss)){if(T.boss===2)drawChaserBust(2);drawChaserThrows(T.boss)}}
+function drawBossFront(){drawBossFront0();const T=S.T;if(T&&T.boss>1&&!S.demo&&typeof BA_F!=='undefined'&&baReady(T.boss))drawChaserThrows(T.boss)}
 function drawBossFront0(){
  const T=S.T;if(!T.boss||S.demo)return;const z=ppm();
  if(T.boss===1){
@@ -1792,7 +1791,7 @@ function drawChaserBust(k){
  // vertical: Magmar's lava line / Nox's tail tip sits on the ground under him (smoothed), head never under the HUD
  let gy=0;for(let i=0;i<=4;i++)gy+=sy(groundAt(T,wx(left+wd*(b.l+bodyW*(.3+.1*i)))))/5;
  const headMin=Math.max(8+hgt*(b.t-P.vt),Math.max(70,H*.15));
- const lineY=k===2?Math.max(headMin+bodyH,Math.min(H+bodyH*.1,gy+bodyH*.06)):Math.max(headMin+bodyH,Math.min(H,gy-8));
+ const lineY=k===2?Math.max(headMin+bodyH,Math.min(H+bodyH*.1,gy+bodyH*.04)):Math.max(headMin+bodyH,Math.min(H,gy-8));
  S.baY=S.baY==null?lineY:S.baY+(lineY-S.baY)*Math.min(1,dt*1.6);
  const bob=k===3?Math.sin(t*1.7)*bodyH*.025:0,top=S.baY-hgt*b.b+bob;
  // animation state
@@ -1816,10 +1815,12 @@ function drawChaserBust(k){
 }
 /* Magmar stands waist-deep in a bubbling lava pool: hides where the body ends */
 function drawLavaPool(x0,x1,y,bodyH,alpha){const t=clock,w=x1-x0,h=Math.max(10,bodyH*.16),cx=(x0+x1)/2;ctx.save();ctx.globalAlpha=alpha;
- const g=ctx.createLinearGradient(0,y-h*.6,0,y+h*1.6);g.addColorStop(0,'#ffe27a');g.addColorStop(.25,'#ff8a1e');g.addColorStop(.7,'#b3260a');g.addColorStop(1,'rgba(90,10,0,0)');
- ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x0,y+h*1.6);for(let i=0;i<=24;i++){const q=i/24,xx=x0+w*q,yy=y-h*.35*Math.sin(q*Math.PI)-Math.sin(q*13+t*3)*h*.12;ctx.lineTo(xx,yy)}ctx.lineTo(x1,y+h*1.6);ctx.closePath();ctx.fill();
- ctx.globalCompositeOperation='lighter';const gl=ctx.createRadialGradient(cx,y,0,cx,y,w*.6);gl.addColorStop(0,'rgba(255,140,40,.35)');gl.addColorStop(1,'rgba(255,90,20,0)');ctx.fillStyle=gl;ctx.fillRect(cx-w*.6,y-w*.3,w*1.2,w*.6);
- ctx.fillStyle='rgba(255,230,140,.9)';for(let k=0;k<7;k++){const ph=(t*.7+k*.37)%1,xx=x0+w*(.1+.8*((k*.618)%1)),r=(1-ph)*h*.25+1;ctx.globalAlpha=alpha*(1-ph);ctx.beginPath();ctx.arc(xx,y-h*.3-ph*h*.9,r,0,7);ctx.fill()}
+ // soft oval pool (no hard edges), wavy top, bubbles
+ const g=ctx.createLinearGradient(0,y-h*.6,0,y+h*1.4);g.addColorStop(0,'#ffe27a');g.addColorStop(.3,'#ff8a1e');g.addColorStop(.75,'#b3260a');g.addColorStop(1,'rgba(90,10,0,0)');
+ ctx.fillStyle=g;ctx.beginPath();for(let i=0;i<=32;i++){const q=i/32,a=Math.PI*(1-q),xx=cx+Math.cos(a)*w*.5,yy=y-Math.sin(a)*h*.35-Math.sin(q*13+t*3)*h*.1*Math.sin(a);i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy)}
+ ctx.ellipse(cx,y,w*.5,h*1.4,0,0,Math.PI);ctx.closePath();ctx.fill();
+ ctx.globalCompositeOperation='lighter';const gl=ctx.createRadialGradient(cx,y,0,cx,y,w*.6);gl.addColorStop(0,'rgba(255,140,40,.3)');gl.addColorStop(1,'rgba(255,90,20,0)');ctx.fillStyle=gl;ctx.beginPath();ctx.ellipse(cx,y,w*.6,w*.25,0,0,7);ctx.fill();
+ ctx.fillStyle='rgba(255,230,140,.9)';for(let k=0;k<7;k++){const ph=(t*.7+k*.37)%1,xx=x0+w*(.15+.7*((k*.618)%1)),r=(1-ph)*h*.2+1;ctx.globalAlpha=alpha*(1-ph);ctx.beginPath();ctx.arc(xx,y-h*.3-ph*h*.9,r,0,7);ctx.fill()}
  ctx.restore()}
 /* projectiles of Magmar (lava bomb) and Nox (void shard): fly from the mouth / claw in an arc to their landing spot */
 function drawChaserThrows(k){const T=S.T,z=ppm();if(!S.baHand)return;

@@ -349,7 +349,7 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
  <canvas id="cv" aria-label="Игровое поле"></canvas>
 
  <section class="screen" id="scrTitle">
-  <div class="tline"><span class="eyebrow">сборка 20 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
+  <div class="tline"><span class="eyebrow">сборка 21 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
   <h1 class="logo">ROCK<span>ROLL</span></h1>
   <p class="tag">Скати камень с горы до финиша. Трамплины, пропасти, обвалы и нитро — каждая трасса проходима, если найти свою линию.</p>
   <div class="stack">
@@ -2162,7 +2162,7 @@ function startGame(n,m){
 function togglePause(on){if(!S||S.demo)return;S.paused=on;$('scrPause').hidden=!on;AU.update(0,false,0,false,false);refreshTitle()}
 function showResult(r){
  if(scr!=='game')return;$('scrResult').hidden=false;
- if(r.run.fin&&(!S.T.boss||r.run.won))setTimeout(()=>celebrate(r.stars),120);
+ if(r.run.fin&&(!S.T.boss||r.run.won))setTimeout(()=>celebrate(r.stars,!!S.T.boss),120);
  $('rCode').textContent=LEAGUES[leagueOf(r.n)].short+' · '+(BOSS_AT[r.n]?'Босс':'Участок '+String(kOf(r.n)).padStart(2,'0'))+' · '+S.T.name;
  const fin=!!r.run.fin,bk=S.T.boss;$('rTitle').textContent=fin?(r.stars===3?'Идеальная доставка':'Финиш!'):r.pct>=.5?'Полпути есть':'Не дотянул';$('rTitle').className=fin?'ok':r.pct>=.5?'':'fail';
  if(bk){const B=BOSSES[bk];$('rTitle').textContent=r.run.won?B.name+' повержен!':bk===1&&fin?B.name+' оказался быстрее':bk===2&&r.run.caught?'Лава догнала':bk===3&&r.run.caught?'Бездна поглотила':'Вызов не принят';$('rTitle').className=r.run.won?'ok':'fail'}
@@ -2215,9 +2215,9 @@ newSession(13,{demo:true});show('title');refreshTitle();
 requestAnimationFrame(frame);
 netInit();
 
-/* result celebration: confetti cannons from both sides + fireworks overhead */
+/* result celebration: confetti cannons from both sides; fireworks overhead only after a boss win */
 let CEL=null;
-function celebrate(stars){if(REDUCE)return;
+function celebrate(stars,fireworks){if(REDUCE)return;
  let cv=document.getElementById('celebFx');if(!cv){cv=document.createElement('canvas');cv.id='celebFx';cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60';document.body.appendChild(cv)}
  const dpr=Math.min(2,window.devicePixelRatio||1),w=innerWidth,h=innerHeight;cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);
  const COLS=['#ffd35c','#ff6a4a','#5ed6cf','#b98cff','#ffffff','#7fe27a','#ff8fd0'],P=[],R=Math.random;
@@ -2226,7 +2226,7 @@ function celebrate(stars){if(REDUCE)return;
  const firework=(x,y,c)=>{for(let i=0;i<70;i++){const an=R()*Math.PI*2,sp=60+R()*170;P.push({k:'s',x,y,vx:Math.cos(an)*sp,vy:Math.sin(an)*sp,c:c||COLS[(R()*COLS.length)|0],l:0,L:1+R()*.8,r:1.4+R()*1.6})}};
  const rocket=(x,ty,delay)=>{setTimeout(()=>{P.push({k:'r',x,y:h+5,ty,vy:-h*1.25,c:COLS[(R()*COLS.length)|0],l:0,L:4})},delay*1000);AU.firework(delay)};
  cannon(-1,90);cannon(1,90);AU.popper(0);AU.popper(.06);
- const nf=stars>=3?4:3;for(let i=0;i<nf;i++)rocket(w*(.2+.6*(i+R()*.6)/nf),h*(.15+R()*.2),.35+i*.45);
+ const nf=fireworks?(stars>=3?5:4):0;for(let i=0;i<nf;i++)rocket(w*(.2+.6*(i+R()*.6)/nf),h*(.15+R()*.2),.35+i*.45);
  setTimeout(()=>{cannon(-1,50);cannon(1,50);AU.popper(0)},900);
  if(CEL)cancelAnimationFrame(CEL);let last=performance.now();
  const step=now=>{const dt=Math.min(.05,(now-last)/1000);last=now;g.clearRect(0,0,w,h);

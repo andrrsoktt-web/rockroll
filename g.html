@@ -349,7 +349,7 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
  <canvas id="cv" aria-label="Игровое поле"></canvas>
 
  <section class="screen" id="scrTitle">
-  <div class="tline"><span class="eyebrow">сборка 18 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
+  <div class="tline"><span class="eyebrow">сборка 19 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
   <h1 class="logo">ROCK<span>ROLL</span></h1>
   <p class="tag">Скати камень с горы до финиша. Трамплины, пропасти, обвалы и нитро — каждая трасса проходима, если найти свою линию.</p>
   <div class="stack">
@@ -824,6 +824,30 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&AU.c&&AU.
 AU.bufs={};AU.prep=function(url){if(!AU.c||AU.bufs[url])return AU.bufs[url];AU.bufs[url]=fetch(url).then(r=>r.arrayBuffer()).then(b=>new Promise((ok,no)=>AU.c.decodeAudioData(b,ok,no))).then(buf=>AU.bufs[url]=buf).catch(()=>null);return AU.bufs[url]};
 AU.sample=function(url,vol){if(!AU.c)return;const b=AU.bufs[url];if(!b||b.then){AU.prep(url);return}const s=AU.c.createBufferSource();s.buffer=b;const g=AU.c.createGain();g.gain.value=vol||1;s.connect(g);g.connect(AU.out);s.start()};
 AU.sampleRate=function(url,vol,rate){if(!AU.c)return;const b=AU.bufs[url];if(!b||b.then){AU.prep(url);return}const s=AU.c.createBufferSource();s.buffer=b;s.playbackRate.value=rate||1;const g=AU.c.createGain();g.gain.value=vol||1;s.connect(g);g.connect(AU.out);s.start()};
+/* finish socket click: metal clunk */
+AU.plateClick=function(){if(!AU.c)return;AU.tone('sine',190,70,.5,.25);AU.tone('square',900,500,.06,.05);AU.burst(AU.white,'bandpass',2600,4,.25,.08);AU.burst(AU.pink,'lowpass',300,.7,.35,.18,.01)};
+AU.reverb=function(){if(AU.rv||!AU.c)return AU.rv;const c=AU.c,n=c.sampleRate*3,b=c.createBuffer(2,n,c.sampleRate);for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3.2)}
+ const cv=c.createConvolver();cv.buffer=b;const g=c.createGain();g.gain.value=.55;cv.connect(g);g.connect(AU.out);AU.rv=cv;return cv};
+/* angelic female choir "aah": detuned saw voices through vowel formants, vibrato, big reverb */
+AU.choir=function(){if(!AU.c||AU.muted)return;const c=AU.c,t0=c.currentTime+.02,rv=AU.reverb(),bus=c.createGain();bus.gain.value=.9;
+ const F=[[850,1,7],[1220,.5,9],[2810,.28,11],[3600,.12,12]];
+ const outs=F.map(([f,g,q])=>{const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=f;bp.Q.value=q;const gg=c.createGain();gg.gain.value=g*2.2;bp.connect(gg);gg.connect(bus);return bp});
+ const dry=c.createGain();dry.gain.value=.45;bus.connect(dry);dry.connect(AU.out);bus.connect(rv);
+ const chord=(notes,at,dur,amp)=>{for(const f of notes)for(let k=0;k<3;k++){const o=c.createOscillator();o.type='sawtooth';o.frequency.value=f;o.detune.value=(k-1)*9+(Math.random()-.5)*4;
+   const vib=c.createOscillator(),vg=c.createGain();vib.frequency.value=5.2+Math.random()*.8;vg.gain.value=f*.006;vib.connect(vg);vg.connect(o.frequency);
+   const g=c.createGain(),s=t0+at,e=s+dur;g.gain.setValueAtTime(.0001,s);g.gain.linearRampToValueAtTime(amp,s+.45);g.gain.setValueAtTime(amp,e-.6);g.gain.linearRampToValueAtTime(.0001,e);
+   o.connect(g);for(const bp of outs)g.connect(bp);o.start(s);vib.start(s);o.stop(e+.05);vib.stop(e+.05)}};
+ const A=.022;
+ chord([523.25,659.25,783.99],0,1.5,A);            // C major
+ chord([523.25,698.46,880],1.15,1.3,A);             // F/C
+ chord([523.25,659.25,783.99,1046.5],2.2,2.4,A*.9); // C major, high C on top
+ [2093,2637,3136].forEach((f,i)=>AU.tone('sine',f,f,.05,1.6,.05+i*.12)); // celestial shimmer
+};
+/* confetti cannon pop */
+AU.popper=function(delay){if(!AU.c)return;const d=delay||0;AU.burst(AU.white,'bandpass',1400,.7,.5,.12,d);AU.tone('sine',140,50,.45,.18,d);AU.burst(AU.white,'highpass',5000,.5,.12,.6,d+.05)};
+/* firework: whistle up, boom, crackle */
+AU.firework=function(delay){if(!AU.c)return;const d=delay||0;AU.tone('sine',700,1900,.05,.55,d);AU.burst(AU.pink,'lowpass',600,.6,.55,.7,d+.55);AU.tone('sine',90,40,.35,.5,d+.55);
+ for(let i=0;i<14;i++)AU.burst(AU.white,'highpass',3000+Math.random()*3000,.8,.08+Math.random()*.08,.05,d+.75+Math.random()*.8)};
 
 /* ================= world rendering (cartoon) ================= */
 const PAL={
@@ -987,6 +1011,24 @@ function drawTerrain(P){
   const cw=ww+.6*z,chh=.8*z,cx0=gx-cw/2,cy0=gy-hh-chh*.4,cells=10;for(let i=0;i<cells;i++)for(let j=0;j<2;j++){ctx.fillStyle=(i+j)%2?'#1c1c22':'#f4f4f4';ctx.fillRect(cx0+i*cw/cells,cy0+j*chh/2,cw/cells+.5,chh/2+.5)}
   ctx.strokeStyle='#1c1c22';ctx.lineWidth=2;ctx.strokeRect(cx0,cy0,cw,chh);
   for(const s of [-1,1]){const fx=gx+s*ww/2,fy=gy-hh;ctx.strokeStyle='#eee';ctx.beginPath();ctx.moveTo(fx,fy);ctx.lineTo(fx,fy-1.4*z);ctx.stroke();ctx.fillStyle='#ff6a4a';ctx.beginPath();const fl=Math.sin(clock*6+s)*.15*z;ctx.moveTo(fx,fy-1.4*z);ctx.lineTo(fx+s*.9*z,fy-1.15*z+fl);ctx.lineTo(fx,fy-.9*z);ctx.fill()}}
+ // finish socket: a round riveted steel plate set into the ground; sinks like a button when the stone lands on it
+ {const px=plateX(T);if(px>=x0-3&&px<=x1+3){const g0=groundAt(T,px),ang=Math.atan2(groundAt(T,px+.6)-groundAt(T,px-.6),1.2),gx=sx(px),gy=sy(g0),z0=ppm();
+  const run=S.run,pr=run&&run.plate!=null&&run.plate!==undefined&&run.plate!==false?Math.min(1,(run.t-run.plate)/.15):0,sk=PLATE_SINK*pr*z0,glow=pr?(.6+.4*Math.sin(clock*5)):(.25+.2*Math.sin(clock*2.5));
+  const rx=1.35*z0,ry=.36*z0;ctx.save();ctx.translate(gx,gy);ctx.rotate(-ang);
+  // recess
+  ctx.fillStyle='#14161c';ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);ctx.fill();
+  // golden glow ring
+  ctx.strokeStyle=`rgba(255,214,110,${glow})`;ctx.lineWidth=Math.max(2,.09*z0);ctx.beginPath();ctx.ellipse(0,0,rx*.97,ry*.95,0,0,Math.PI*2);ctx.stroke();
+  // plate (lowered when pressed): side band + top face
+  ctx.translate(0,sk);const prx=rx*.86,pry=ry*.8,th=.14*z0;
+  ctx.fillStyle='#5b6370';ctx.beginPath();ctx.ellipse(0,th*.5,prx,pry,0,0,Math.PI);ctx.lineTo(-prx,0);ctx.fill();
+  const tg=ctx.createLinearGradient(-prx,-pry,prx,pry);tg.addColorStop(0,'#f2f5f8');tg.addColorStop(.45,'#9aa4b0');tg.addColorStop(.55,'#c9d1da');tg.addColorStop(1,'#6d7682');
+  ctx.fillStyle=tg;ctx.beginPath();ctx.ellipse(0,0,prx,pry,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#3b414b';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.strokeStyle='rgba(60,66,76,.7)';ctx.beginPath();ctx.ellipse(0,0,prx*.62,pry*.62,0,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle=pr?'#ffe08a':'#e8c766';ctx.beginPath();ctx.ellipse(0,0,prx*.22,pry*.22,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2e333b';for(let i=0;i<10;i++){const a=i/10*Math.PI*2;ctx.beginPath();ctx.ellipse(Math.cos(a)*prx*.82,Math.sin(a)*pry*.8,Math.max(1.2,.05*z0),Math.max(.8,.03*z0),0,0,Math.PI*2);ctx.fill()}
+  ctx.restore()}}
  // boost pads: glowing strips with running chevrons
  for(const b of T.boosts){if(b.b<x0||b.a>x1)continue;ctx.save();ctx.lineCap='round';
   ctx.strokeStyle='rgba(255,170,60,.35)';ctx.lineWidth=.5*z;ctx.beginPath();for(let x=b.a;x<=b.b;x+=.5){const y=sy(groundAt(T,x)+.12);x===b.a?ctx.moveTo(sx(x),y):ctx.lineTo(sx(x),y)}ctx.stroke();
@@ -1083,6 +1125,24 @@ function drawVignette(){const g=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.
 
 const SOFT={};function rgbaOf(col,a){if(col[0]==='#'){const v=hx(col);return`rgba(${v[0]},${v[1]},${v[2]},${a})`}const m=col.match(/[\d.]+/g);return`rgba(${m[0]},${m[1]},${m[2]},${a})`}
 function softSprite(col){if(SOFT[col])return SOFT[col];const c=canvasOf(64,64),g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,rgbaOf(col,.95));gr.addColorStop(.5,rgbaOf(col,.55));gr.addColorStop(1,rgbaOf(col,0));g.fillStyle=gr;g.fillRect(0,0,64,64);SOFT[col]=c;return c}
+
+const PLATE_SINK=.18;
+function plateX(T){return T.F+12}
+/* heavenly beam from the top of the screen onto the pressed plate, with drifting motes */
+function drawBeam(dt){const T=S.T,B=S.beam,px=plateX(T),gx=sx(px),gy=sy(groundAt(T,px)),z0=ppm(),age=clock-B.t0;
+ const a=Math.min(1,age/.45),reach=Math.min(1,age/.35),yb=-20+(gy+10)*reach,wB=1.9*z0,wT=Math.max(wB*2.2,W*.16),pulse=.85+.15*Math.sin(clock*3.1);
+ ctx.save();ctx.globalCompositeOperation='lighter';
+ for(const [k,al] of [[1.6,.16],[1,.28],[.45,.45]]){const g=ctx.createLinearGradient(0,-20,0,yb);g.addColorStop(0,`rgba(255,246,214,${al*a*pulse})`);g.addColorStop(.7,`rgba(255,226,150,${al*a*.8*pulse})`);g.addColorStop(1,`rgba(255,250,230,${al*a})`);
+  ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(gx-wT*k*.5,-20);ctx.lineTo(gx+wT*k*.5,-20);ctx.lineTo(gx+wB*k*.5,yb);ctx.lineTo(gx-wB*k*.5,yb);ctx.closePath();ctx.fill()}
+ // soft rays sweeping inside the beam
+ for(let i=0;i<5;i++){const ph=clock*.6+i*1.3,o=Math.sin(ph)*.35;ctx.fillStyle=`rgba(255,255,240,${.07*a})`;ctx.beginPath();ctx.moveTo(gx+o*wT-wT*.06,-20);ctx.lineTo(gx+o*wT+wT*.06,-20);ctx.lineTo(gx+o*wB*.6+wB*.04,yb);ctx.lineTo(gx+o*wB*.6-wB*.04,yb);ctx.fill()}
+ // halo on the ground
+ const hg=ctx.createRadialGradient(gx,gy,0,gx,gy,wB*1.8);hg.addColorStop(0,`rgba(255,240,190,${.45*a*reach})`);hg.addColorStop(1,'rgba(255,240,190,0)');ctx.fillStyle=hg;ctx.beginPath();ctx.ellipse(gx,gy,wB*1.8,wB*.7,0,0,Math.PI*2);ctx.fill();
+ // motes
+ if(dt&&B.parts.length<70&&Math.random()<.8)B.parts.push({x:gx+(Math.random()-.5)*wB*1.1,y:gy-Math.random()*20,vy:-(30+Math.random()*60),vx:(Math.random()-.5)*14,r:1+Math.random()*2.2,l:0,L:1.4+Math.random()*1.4});
+ for(const p of B.parts){p.l+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const f=1-p.l/p.L;if(f<=0)continue;ctx.fillStyle=`rgba(255,250,220,${f*.9})`;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill()}
+ B.parts=B.parts.filter(p=>p.l<p.L);
+ ctx.restore()}
 
 /* ================= painted backgrounds: zones, set pieces, light, fog, foreground ================= */
 const ZONES={
@@ -1858,7 +1918,14 @@ function tick(dt){
   if(ev.rockThrow){S.bossThrow=clock;if(Math.random()<.5)toast('Сизиф бросает камень!','alert')}
   if(ev.rockLand){const rk=ev.rockLand;AU.impact(4,2,3);chips(rk.x,rk.y,'#8a7a66',8,5);puff(rk.x,rk.y-rk.r,P.hl[2],6,3,.5);if(!REDUCE)S.shake=Math.min(.7,S.shake+.4)}
   if(S.ghost&&!S.ghost.said&&!run.fin){const gp=samplePath(S.ghost.path,run.frames/S.ghost.step);if(gp&&gp[0]>=T.F){S.ghost.said=true;toast('Сизиф уже на финише','alert')}}}
- for(let i=0;i<8;i++)physStep(st,T,dt/8,S.input,S.rnd,ev);
+ if(!run.plate)for(let i=0;i<8;i++)physStep(st,T,dt/8,S.input,S.rnd,ev);
+ // finish socket: after the line the stone is guided onto a round metal plate a few metres on, presses it like a button, heaven opens
+ if(run.fin&&!S.demo&&!run.plateMiss){const px=plateX(T),dx=px-st.x;
+  if(run.plate){st.x=px;st.y=groundAt(T,px)+st.R-PLATE_SINK*Math.min(1,(run.t-run.plate)/.15);st.vx=st.vy=0;st.grounded=true}
+  else if(dx<-1)run.plateMiss=true;
+  else if(st.y-groundAt(T,st.x)<st.R+.35){const v=Math.hypot(st.vx,st.vy),vd=Math.sqrt(2*10*Math.max(0,dx))+.6;
+   if(v>vd){const k=vd/v;st.vx*=k;st.vy*=k}else if(v<1.2&&dx>.2){st.vx=Math.max(st.vx,1.2)}
+   if(dx<=.2){run.plate=run.t;S.beam={t0:clock,parts:[]};AU.plateClick();setTimeout(()=>AU.choir(),180);if(!REDUCE)S.shake=Math.min(.5,S.shake+.25);sparks(px,groundAt(T,px)+.3,'#fff3c4',30)}}}
  if(ev.rockBreak){const rk=ev.rockBreak;AU.crack(false);chips(rk.x,rk.y,'#8a7a66',14,6);puff(rk.x,rk.y,P.hl[2],6,3,.5);if(!S.demo)toast('Камень разбит!','check')}
  if(ev.jump){AU.launch(.5);puff(st.x,st.y-st.R,P.hl[st.surf]||'#fff',8,3,.4);$('jumpBtn').classList.add('on');setTimeout(()=>$('jumpBtn').classList.remove('on'),180)}
  updateCrumbles(T,st,dt,ev);
@@ -1886,7 +1953,7 @@ function tick(dt){
  if(!run.cp&&!run.fin&&run.mx-st.x>1.5&&run.t>1.5){run.cp=1;if(!S.demo){toast('Чекпоинт · '+Math.floor(progress()*100)+'%','flag');AU.ui()}}
  if(!run.fin&&st.x>=T.F){run.fin=run.t;AU.finish();sparks(T.F,groundAt(T,T.F)+3,'#ffd35c',40);if(!S.demo)toast('Финиш!','flag')}
  if(st.grounded&&v<.3)run.still+=dt;else run.still=0;
- if(run.still>1.2||run.t-run.mt>5||st.x>T.L-3||run.t>150)finish();
+ if(run.plate){if(run.t-run.plate>2.6)finish()}else if(run.still>1.2||run.t-run.mt>(run.fin&&!run.plateMiss&&!S.demo?8:5)||st.x>T.L-3||run.t>150)finish();
 }
 function starsFor(pct,fin,crys){return fin?(crys>=3?3:2):pct>=.5?1:0}
 function finish(){
@@ -1974,6 +2041,7 @@ function frameBody(now){
   if(!S.demo&&scr==='game')for(const p of peersOnLevel(S.n)){const q0=p.presence;if(!Number.isFinite(q0.x))continue;const sm=SMOOTH[p.peer]||(SMOOTH[p.peer]={x:q0.x,y:q0.y,a:q0.a||0}),kk=Math.min(1,dt*10);if(Math.abs(q0.x-sm.x)>15){sm.x=q0.x;sm.y=q0.y}sm.x+=(q0.x-sm.x)*kk;sm.y+=(q0.y-sm.y)*kk;sm.a+=((q0.a||0)-sm.a)*kk;const q={x:sm.x,y:sm.y,a:sm.a,R:q0.R,t:q0.t};drawStone(q.x,q.y,q.a||0,q.R||.55,STONES[q.t]?q.t:'boulder','peer',nameOf(p.by)+' · live',peerColor(p.by||p.peer))}
   if(S.nitroOn&&S.mode==='run')drawNitroFx();
   safe(drawParticles,S.paused?0:dt);
+  if(S.run&&S.run.plate&&S.beam)safe(drawBeam,S.paused?0:dt);
   drawStone(ix,iy,ia,st.R,S.type,null);
   if(aiming&&!S.demo)drawAim();
   ctx.restore();
@@ -2090,6 +2158,7 @@ function startGame(n,m){
 function togglePause(on){if(!S||S.demo)return;S.paused=on;$('scrPause').hidden=!on;AU.update(0,false,0,false,false);refreshTitle()}
 function showResult(r){
  if(scr!=='game')return;$('scrResult').hidden=false;
+ if(r.run.fin&&(!S.T.boss||r.run.won))setTimeout(()=>celebrate(r.stars),120);
  $('rCode').textContent=LEAGUES[leagueOf(r.n)].short+' · '+(BOSS_AT[r.n]?'Босс':'Участок '+String(kOf(r.n)).padStart(2,'0'))+' · '+S.T.name;
  const fin=!!r.run.fin,bk=S.T.boss;$('rTitle').textContent=fin?(r.stars===3?'Идеальная доставка':'Финиш!'):r.pct>=.5?'Полпути есть':'Не дотянул';$('rTitle').className=fin?'ok':r.pct>=.5?'':'fail';
  if(bk){const B=BOSSES[bk];$('rTitle').textContent=r.run.won?B.name+' повержен!':bk===1&&fin?B.name+' оказался быстрее':bk===2&&r.run.caught?'Лава догнала':bk===3&&r.run.caught?'Бездна поглотила':'Вызов не принят';$('rTitle').className=r.run.won?'ok':'fail'}
@@ -2141,6 +2210,30 @@ new ResizeObserver(resize).observe(app);resize();
 newSession(13,{demo:true});show('title');refreshTitle();
 requestAnimationFrame(frame);
 netInit();
+
+/* result celebration: confetti cannons from both sides + fireworks overhead */
+let CEL=null;
+function celebrate(stars){if(REDUCE)return;
+ let cv=document.getElementById('celebFx');if(!cv){cv=document.createElement('canvas');cv.id='celebFx';cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60';document.body.appendChild(cv)}
+ const dpr=Math.min(2,window.devicePixelRatio||1),w=innerWidth,h=innerHeight;cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);
+ const COLS=['#ffd35c','#ff6a4a','#5ed6cf','#b98cff','#ffffff','#7fe27a','#ff8fd0'],P=[],R=Math.random;
+ const cannon=(side,n)=>{const x0=side<0?-10:w+10,y0=h*.92;for(let i=0;i<n;i++){const an=side<0?-(.75+R()*.6):-(Math.PI-.75-R()*.6),sp=h*(1.1+R()*1.1);
+   P.push({k:'c',x:x0,y:y0,vx:Math.cos(an)*sp,vy:Math.sin(an)*sp,w:5+R()*6,hh:3+R()*4,r:R()*6,vr:(R()-.5)*14,f:R()*6,c:COLS[(R()*COLS.length)|0],l:0,L:3+R()*1.5})}};
+ const firework=(x,y,c)=>{for(let i=0;i<70;i++){const an=R()*Math.PI*2,sp=60+R()*170;P.push({k:'s',x,y,vx:Math.cos(an)*sp,vy:Math.sin(an)*sp,c:c||COLS[(R()*COLS.length)|0],l:0,L:1+R()*.8,r:1.4+R()*1.6})}};
+ const rocket=(x,ty,delay)=>{setTimeout(()=>{P.push({k:'r',x,y:h+5,ty,vy:-h*1.25,c:COLS[(R()*COLS.length)|0],l:0,L:4})},delay*1000);AU.firework(delay)};
+ cannon(-1,90);cannon(1,90);AU.popper(0);AU.popper(.06);
+ const nf=stars>=3?4:3;for(let i=0;i<nf;i++)rocket(w*(.2+.6*(i+R()*.6)/nf),h*(.15+R()*.2),.35+i*.45);
+ setTimeout(()=>{cannon(-1,50);cannon(1,50);AU.popper(0)},900);
+ if(CEL)cancelAnimationFrame(CEL);let last=performance.now();
+ const step=now=>{const dt=Math.min(.05,(now-last)/1000);last=now;g.clearRect(0,0,w,h);
+  for(const p of P){p.l+=dt;
+   if(p.k==='c'){p.vx*=Math.pow(.25,dt);p.vy=p.vy*Math.pow(.3,dt)+520*dt*.35;p.x+=p.vx*dt+Math.sin(p.f+p.l*5)*20*dt;p.y+=p.vy*dt;p.r+=p.vr*dt;
+    const a=Math.min(1,(p.L-p.l)/.6);g.save();g.globalAlpha=Math.max(0,a);g.translate(p.x,p.y);g.rotate(p.r);g.scale(1,Math.abs(Math.cos(p.f+p.l*7))*.8+.2);g.fillStyle=p.c;g.fillRect(-p.w/2,-p.hh/2,p.w,p.hh);g.restore()}
+   else if(p.k==='r'){p.y+=p.vy*dt;g.fillStyle='rgba(255,240,200,.9)';g.fillRect(p.x-1.5,p.y,3,14);if(p.y<=p.ty){p.l=p.L;firework(p.x,p.y,p.c);firework(p.x,p.y)}}
+   else{p.vx*=Math.pow(.4,dt);p.vy=p.vy*Math.pow(.4,dt)+90*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const a=Math.max(0,1-p.l/p.L);g.globalCompositeOperation='lighter';g.fillStyle=p.c;g.globalAlpha=a*(.6+.4*Math.sin(p.l*40));g.beginPath();g.arc(p.x,p.y,p.r,0,Math.PI*2);g.fill();g.globalAlpha=1;g.globalCompositeOperation='source-over'}}
+  for(let i=P.length-1;i>=0;i--)if(P[i].l>=P[i].L)P.splice(i,1);
+  if(P.length||now-start<3000)CEL=requestAnimationFrame(step);else{g.clearRect(0,0,w,h);CEL=null}};
+ const start=performance.now();CEL=requestAnimationFrame(step)}
 
 </script>
 

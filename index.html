@@ -298,6 +298,12 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
  .nitro{width:82px;height:82px}.nitro::before{-webkit-mask:radial-gradient(circle,transparent 47px,#000 48px);mask:radial-gradient(circle,transparent 47px,#000 48px)}
 }
 @media (max-width:520px){.stack{grid-template-columns:1fr}}
+/* narrow portrait: map header in two rows (back + stats, then league switcher) */
+@media (max-width:560px) and (orientation:portrait){
+ #scrMap .topbar{flex-wrap:wrap;row-gap:10px}
+ #scrMap .topbar .lgsw{order:3;flex:1 0 100%}
+ #scrMap .topbar .tl{margin-left:auto}
+}
 /* landscape phone: title in two columns so everything fits without scrolling */
 @media (orientation:landscape) and (max-height:520px){
  #scrTitle{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,360px);grid-template-rows:auto auto auto 1fr auto;column-gap:28px;row-gap:10px;align-content:center}
@@ -360,7 +366,7 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
  <canvas id="cv" aria-label="Игровое поле"></canvas>
 
  <section class="screen" id="scrTitle">
-  <div class="tline"><span class="eyebrow" id="buildLbl">сборка 29 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
+  <div class="tline"><span class="eyebrow" id="buildLbl">сборка 30 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
   <h1 class="logo">ROCK<span>ROLL</span></h1>
   <p class="tag">Скати камень с горы до финиша. Трамплины, пропасти, обвалы и нитро — каждая трасса проходима, если найти свою линию.</p>
   <div class="stack">
@@ -2057,7 +2063,7 @@ function demoThrow(){const ln=LEVELS[S.n-1].line,S0=STONES[S.type],a=(ln.a+(Math
 function puff(x,y,col,n,spd,size){for(let i=0;i<n&&S.parts.length<480;i++)S.parts.push({k:'dust',x,y,vx:(Math.random()-.5)*spd,vy:Math.random()*spd*.5,life:.9+Math.random()*.8,max:1.7,col,s:size*(.6+Math.random())})}
 function chips(x,y,col,n,spd){for(let i=0;i<n&&S.parts.length<480;i++)S.parts.push({k:'chip',x,y,vx:(Math.random()-.5)*spd,vy:Math.random()*spd*.8+1,life:2+Math.random()*1.5,col,s:.06+Math.random()*.18,a:Math.random()*6,va:(Math.random()-.5)*14,sides:3+((Math.random()*3)|0)})}
 function sparks(x,y,col,n){for(let i=0;i<n&&S.parts.length<480;i++){const a=Math.random()*6.28,s=2+Math.random()*5;S.parts.push({k:'spark',x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.6+Math.random()*.6,col,s:.1+Math.random()*.1})}}
-function toast(t,icon){const el=$('toast');el.innerHTML=(icon?ico(icon):'')+'<span></span>';el.lastChild.textContent=t;el.hidden=false;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');clearTimeout(toast.h);toast.h=setTimeout(()=>el.hidden=true,1700)}
+function toast(t,icon){const el=$('toast');el.innerHTML=(icon?ico(icon):'')+'<span></span>';el.lastChild.textContent=t;el.hidden=false;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');clearTimeout(toast.h);toast.h=setTimeout(()=>el.hidden=!(coarse&&W<H&&!rotSkip&&scr==='game'),1700)}
 
 /* ---------- simulation tick ---------- */
 function tick(dt){

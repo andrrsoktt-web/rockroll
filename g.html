@@ -349,7 +349,7 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
  <canvas id="cv" aria-label="Игровое поле"></canvas>
 
  <section class="screen" id="scrTitle">
-  <div class="tline"><span class="eyebrow" id="buildLbl">сборка 25 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
+  <div class="tline"><span class="eyebrow" id="buildLbl">сборка 26 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
   <h1 class="logo">ROCK<span>ROLL</span></h1>
   <p class="tag">Скати камень с горы до финиша. Трамплины, пропасти, обвалы и нитро — каждая трасса проходима, если найти свою линию.</p>
   <div class="stack">
@@ -2270,6 +2270,7 @@ function startGame(n,m){
 function togglePause(on){if(!S||S.demo)return;S.paused=on;$('scrPause').hidden=!on;AU.update(0,false,0,false,false);refreshTitle()}
 function showResult(r){
  if(scr!=='game')return;$('scrResult').hidden=false;
+ ADS.played(r.n,!!(S.T.boss&&r.run.won));
  if(r.run.fin&&(!S.T.boss||r.run.won))setTimeout(()=>celebrate(r.stars,!!S.T.boss),120);
  $('rCode').textContent=LEAGUES[leagueOf(r.n)].short+' · '+(BOSS_AT[r.n]?'Босс':'Участок '+String(kOf(r.n)).padStart(2,'0'))+' · '+S.T.name;
  const fin=!!r.run.fin,bk=S.T.boss;$('rTitle').textContent=fin?(r.stars===3?'Идеальная доставка':'Финиш!'):r.pct>=.5?'Полпути есть':'Не дотянул';$('rTitle').className=fin?'ok':r.pct>=.5?'':'fail';
@@ -2315,9 +2316,9 @@ $('pauseBtn').onclick=()=>{AU.ui();togglePause(true)};
 $('pResume').onclick=()=>{AU.ui();togglePause(false)};
 $('pRestart').onclick=()=>{AU.ui();startGame(S.n,mode)};
 $('pMap').onclick=()=>{AU.ui();S.paused=false;show('map')};
-$('rRetry').onclick=()=>{AU.ui();startGame(S.n,mode)};
-$('rMap').onclick=()=>{AU.ui();show('map')};
-$('rNext').onclick=()=>{AU.ui();openPrep(S.n+1)};
+$('rRetry').onclick=()=>{AU.ui();ADS.between(()=>startGame(S.n,mode))};
+$('rMap').onclick=()=>{AU.ui();ADS.between(()=>show('map'))};
+$('rNext').onclick=()=>{AU.ui();ADS.between(()=>openPrep(S.n+1))};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&scr==='game'&&S&&S.mode==='run')togglePause(true)});
 
 buildTextures();
@@ -2349,6 +2350,33 @@ function celebrate(stars,fireworks){if(REDUCE)return;
   for(let i=P.length-1;i>=0;i--)if(P[i].l>=P[i].L)P.splice(i,1);
   if(P.length||now-start<3000)CEL=requestAnimationFrame(step);else{g.clearRect(0,0,w,h);CEL=null}};
  const start=performance.now();CEL=requestAnimationFrame(step)}
+
+/* ===== Ads: AdMob interstitial between levels (only inside the iOS app; the Safari/web version shows none) =====
+   Rules: no ads on the first 3 tracks, never right after beating a boss, at most one per 2 finished tracks and per 90 s. */
+const ADS=(()=>{
+ const LIVE=false; // false = Google's test ads (TestFlight). Switch to true only for the App Store release.
+ const APP_UNIT='ca-app-pub-7723372759478472/9526071929',TEST_UNIT='ca-app-pub-3940256099942544/4411468910';
+ const cap=window.Capacitor,native=!!(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&cap.registerPlugin);
+ const AdMob=native?cap.registerPlugin('AdMob'):null;
+ let ready=false,loaded=false,loading=false,since=0,lastAt=0,skipNext=false,lastN=0;
+ const opts=()=>({adId:LIVE?APP_UNIT:TEST_UNIT,isTesting:!LIVE});
+ async function load(){if(!ready||loaded||loading)return;loading=true;try{await AdMob.prepareInterstitial(opts());loaded=true}catch(e){loaded=false}loading=false}
+ async function init(){if(!native)return;try{
+   try{let ci=await AdMob.requestConsentInfo();if(ci.isConsentFormAvailable&&ci.status==='REQUIRED')ci=await AdMob.showConsentForm();if(ci&&ci.canRequestAds===false)return}catch(e){}
+   try{await AdMob.requestTrackingAuthorization()}catch(e){}
+   await AdMob.initialize({initializeForTesting:!LIVE});ready=true;load()}catch(e){}}
+ // ask for consent / tracking a moment after start, not on the very first frame
+ setTimeout(init,2500);
+ function played(n,bossWin){lastN=n;since++;if(bossWin)skipNext=true}
+ function between(go){
+  const ok=native&&ready&&loaded&&lastN>3&&!skipNext&&since>=2&&Date.now()-lastAt>90000;
+  skipNext=false;if(!ok){go();return}
+  since=0;lastAt=Date.now();loaded=false;let done=false;const hs=[];
+  const finish=()=>{if(done)return;done=true;hs.forEach(h=>h&&h.remove&&h.remove());try{AU.c&&AU.c.resume()}catch(e){}go();load()};
+  Promise.all([AdMob.addListener('interstitialAdDismissed',finish),AdMob.addListener('interstitialAdFailedToShow',finish)]).then(r=>hs.push(...r));
+  try{AU.c&&AU.c.suspend()}catch(e){}
+  AdMob.showInterstitial().catch(finish);setTimeout(()=>{if(!done&&Date.now()-lastAt>60000)finish()},61000)}
+ return{played,between,get native(){return native}}})();
 
 </script>
 

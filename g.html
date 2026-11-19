@@ -350,7 +350,7 @@ button:focus-visible,input:focus-visible,[role=button]:focus-visible{outline:2px
  <canvas id="cv" aria-label="Игровое поле"></canvas>
 
  <section class="screen" id="scrTitle">
-  <div class="tline"><span class="eyebrow" id="buildLbl">сборка 27 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
+  <div class="tline"><span class="eyebrow" id="buildLbl">сборка 28 · 3 лиги · 60 трасс</span><span class="pill" id="tOnline" hidden><i class="dot"></i><span id="tOnlineN">онлайн</span></span></div>
   <h1 class="logo">ROCK<span>ROLL</span></h1>
   <p class="tag">Скати камень с горы до финиша. Трамплины, пропасти, обвалы и нитро — каждая трасса проходима, если найти свою линию.</p>
   <div class="stack">
@@ -1819,9 +1819,11 @@ function drawChaserBust(k){
  S.baX=S.baX==null?bc:S.baX+(bc-S.baX)*Math.min(1,dt*3);const left=S.baX-P.c*wd;
  // vertical: Magmar's lava line / Nox's tail tip sits on the ground under him (smoothed), head never under the HUD
  let gy=0;for(let i=0;i<=4;i++)gy+=sy(groundAt(T,wx(left+wd*(b.l+bodyW*(.3+.1*i)))))/5;
+ // Magmar stands: his feet go on the lowest ground point under them, so no foot ever hangs in the air
+ if(k===2){gy=0;for(let i=0;i<=6;i++)gy=Math.max(gy,sy(groundAt(T,wx(left+wd*(P.c-.14+.28*i/6)))))}
  const headMin=Math.max(8+hgt*(b.t-P.vt),Math.max(70,H*.15));
- const lineY=k===2?Math.max(headMin+bodyH,Math.min(H,gy+bodyH*.02)):Math.max(headMin+bodyH,Math.min(H,gy-8)); // Magmar's feet on the ground, Nox's tail just above it
- S.baY=S.baY==null?lineY:S.baY+(lineY-S.baY)*Math.min(1,dt*1.6);
+ const lineY=k===2?Math.max(headMin+bodyH,Math.min(gy+bodyH*.03,H+bodyH*.55)):Math.max(headMin+bodyH,Math.min(H,gy-8)); // Magmar's feet on the ground, Nox's tail just above it
+ S.baY=S.baY==null?lineY:S.baY+(lineY-S.baY)*Math.min(1,dt*(k===2?(lineY>S.baY?9:3):1.6)); // Magmar follows the ground down fast, so he never floats
  const bob=k===3?Math.sin(t*1.7)*bodyH*.025:0,top=S.baY-hgt*b.b+bob;
  // animation state
  const A=S.ba,lead=P.rel/BA_FPS,tt=T.bs&&run&&S.mode==='run'?T.bs.next-run.t:99;
